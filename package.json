@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "expense-tracker": "index.js"
   },
   "repository": {
     "type": "git",
@@ -18,8 +20,7 @@
   "homepage": "https://github.com/PhilippAubert/expense-tracker#readme",
   "description": "",
   "dependencies": {
-    "commander": "^14.0.2",
-    "nodemon": "^3.1.11"
+    "commander": "^14.0.2"
   },
   "type": "module"
 }
