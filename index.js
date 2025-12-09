@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
+import { Command } from "commander";
 import Table from "cli-table3";
 
 import { writeFile, readFile } from "fs/promises";
@@ -21,10 +21,13 @@ const initializeEntity = async (options) => {
 	}
 };
 
+const validateAmount = async amount => 
+	isNaN(amount) ? (console.error("enter a valid numeric amount!"), false) : true;
+  
+
 const saveExpense = async (options) => {
 
-	if (Number.isNaN(Number(options.amount))) {
-		console.error("enter a valid numeric amount!")
+	if (!(await validateAmount(options.amount))) {
 		return;
 	}
 
@@ -42,9 +45,13 @@ const saveExpense = async (options) => {
 	};
 
 	if (newExpense) {
-		expensesFromFile.push(newExpense)
-		await writeFile("./expenses.json", JSON.stringify(expensesFromFile, null, 2));
-		process.stdout.write("Expense added!")
+		expensesFromFile.push(newExpense);
+		try {
+		  await writeFile("./expenses.json", JSON.stringify(expensesFromFile, null, 2));
+		  process.stdout.write("Expense added!\n");
+		} catch (err) {
+		  console.error("Could not save expense:", err);
+		}
 	}
 };
 
@@ -61,8 +68,8 @@ const loadExpenses = async () => {
 			}
 		}
 	} catch (e) {
-		if (e.code === 'ENOENT') {
-			process.stdout.write("File 'Expenses.json' doesn't exist \n");
+		if (e.code === "ENOENT") {
+			process.stdout.write("File Expenses.json doesn't exist \n");
 			return []; 
 		} 
 		process.stderr.write("Unexpected error trying to import file! \n")
@@ -70,7 +77,7 @@ const loadExpenses = async () => {
 };
 
 
-const deleteExepnse = async (options) => {
+const deleteExpense = async (options) => {
 	const allExpenses = await loadExpenses();
 	const idToDelete = Number(options.id);
 	const filteredExpenses = allExpenses.filter(expense => expense.id !== idToDelete);
@@ -81,11 +88,10 @@ const deleteExepnse = async (options) => {
 
 const listAll = async () => {
 	const allExpenses = await loadExpenses();
-  
 	const table = new Table({
 		head: ["ID", "Date", "Description", "Amount"],
 	});
-  
+
 	allExpenses.forEach(e => {
 		table.push([
 			e.id,
@@ -94,7 +100,7 @@ const listAll = async () => {
 			e.amount
 		]);
 	});
-  	console.log(table.toString());
+  	process.stdout.write(table.toString());
 };
 
 const sumExpenses = async () => {
@@ -102,9 +108,8 @@ const sumExpenses = async () => {
 	if (!allExpenses.length) {
 		process.stdout.write("No expenses traced! \n")
 	} else {
-		return allExpenses.reduce((a,b) => {
-			a.amount + b.amount;
-		});
+		const sum = allExpenses.reduce((a,b) => {return Number(a.amount) + Number(b.amount)});
+		process.stdout.write(`Total expenses so far: ${sum} \n`);
 	}
 };
 
@@ -118,14 +123,6 @@ const sumExpenses = async () => {
  * 
  * ADD SORTING BY MONTH
  * 
- * 
- * expense-tracker/
- * 
- * SOME REFACTORING IDEAS: 
- * 
- * 
- * 
- * 
 ├── cli.js                # commander setup
 └── lib/
     ├── store.js          # load/save JSON file
@@ -134,26 +131,26 @@ const sumExpenses = async () => {
 */
 
 program
-	.command('add')
-	.description('create something')
-	.option('--description <expense>')
-	.option('--amount, <amount>')
+	.command("add")
+	.description("create something")
+	.option("--description <expense>")
+	.option("--amount, <amount>")
 	.action((options)=> saveExpense(options))
 
 program
-	.command('delete')
-	.description('delete one expense')
-	.option('--id, <id>')
-	.action((options) => deleteExepnse(options));
+	.command("delete")
+	.description("delete one expense")
+	.option("--id, <id>")
+	.action((options) => deleteExpense(options));
 
 program
-	.command('list')
-	.description('list all expenses')
+	.command("list")
+	.description("list all expenses")
 	.action(()=>listAll());
 
 program
-	.command('sum')
-	.description('sum all expenses')
+	.command("sum")
+	.description("sum all expenses")
 	.action(()=>sumExpenses());
 
 

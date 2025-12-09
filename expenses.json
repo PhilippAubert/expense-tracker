@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "description": "Photo",
+    "amount": "16",
+    "time": "2025-12-09T16:45:13.612Z"
+  },
+  {
+    "id": 5,
+    "description": "Pizza",
+    "amount": "29",
+    "time": "2025-12-09T21:28:22.819Z"
+  }
+]
