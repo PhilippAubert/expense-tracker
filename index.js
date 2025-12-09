@@ -14,8 +14,8 @@ const initializeEntity = async (options) => {
 			time: new Date().toISOString()
 		  };			
 	} catch (e) {
-		console.error(e);
-		console.error("error while writing file");
+		process.stderr.write(e);
+		process.stderr.write("error while writing file");
 		return [];
 	}
 }
@@ -37,7 +37,7 @@ const saveExpense = async (options) => {
 	if (newExpense) {
 		expensesFromFile.push(newExpense)
 		await writeFile("./expenses.json", JSON.stringify(expensesFromFile, null, 2));
-		console.log("Expense added!")
+		process.stdout.write("Expense added!")
 	}
 }
 
@@ -49,18 +49,17 @@ const loadExpenses = async () => {
 			return content;
 		} catch(e) {
 			if (!content || typeof content !== 'File structure damaged') {
-				console.error(e);
+				process.stderr.write(e);
 				return [];
-			  }
-
+			}
 		}
 	} catch (e) {
 		if (e.code === 'ENOENT') {
-			console.log("File doesn't exist");
-			return [];
-		  } 
-		  console.error("Unexpected error trying to import file!")
-	} 
+			process.stdout.write("File doesn't exist");
+			return []; 
+		} 
+		process.stderr.write("Unexpected error trying to import file!")
+	}
 }
 
 program
@@ -71,4 +70,5 @@ program
 	.action((options)=> saveExpense(options))
 
 program.parse();
+
 
