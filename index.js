@@ -23,6 +23,9 @@ const initializeEntity = async (options) => {
 
 const validateAmount = async amount => 
 	isNaN(amount) ? (console.error("enter a valid numeric amount!"), false) : true;
+
+
+const getMonth = ts => new Date(ts).getMonth() + 1;
   
 
 const saveExpense = async (options) => {
@@ -103,32 +106,37 @@ const listAll = async () => {
   	process.stdout.write(table.toString());
 };
 
-const sumExpenses = async () => {
-	const allExpenses = await loadExpenses();
-	if (!allExpenses.length) {
-		process.stdout.write("No expenses traced! \n")
-	} else {
-		const sum = allExpenses.reduce((a,b) => {return Number(a.amount) + Number(b.amount)});
-		process.stdout.write(`Total expenses so far: ${sum} \n`);
+const addAllAmounts = (expenses) =>
+	expenses.reduce((total, { amount }) => total + Number(amount), 0);
+
+const sumExpensesByMonth = (allExpenses, month) => {
+	const monthNum = Number(month);
+	const expensesByMonth = allExpenses.filter(
+		expense => getMonth(expense.time) === monthNum
+	);
+
+	if (!expensesByMonth.length) {
+		return process.stdout.write("No expenses for this month!\n");
 	}
+
+	const sum = addAllAmounts(expensesByMonth);
+	process.stdout.write(`Total expenses for this month: ${sum}\n`);
 };
 
-//TODO: 
+const sumExpenses = async (options) => {
+	const allExpenses = await loadExpenses();
 
-/**
- * 
- * COMMANDS: 
- * 
- * ADD MODIFIYING AMOUNT
- * 
- * ADD SORTING BY MONTH
- * 
-├── cli.js                # commander setup
-└── lib/
-    ├── store.js          # load/save JSON file
-    ├── expenses.js       # business logic (add/list/remove)
-    └── utils.js          # small helpers (id generation, validation)
-*/
+	if (!allExpenses.length) {
+		return process.stdout.write("No expenses found\n");
+	}
+
+	if (options.month) {
+		return sumExpensesByMonth(allExpenses, options.month);
+	}
+
+	const sum = addAllAmounts(allExpenses);
+	process.stdout.write(`Total expenses so far: ${sum}\n`);
+};
 
 program
 	.command("add")
@@ -149,9 +157,10 @@ program
 	.action(()=>listAll());
 
 program
-	.command("sum")
+	.command("summary")
 	.description("sum all expenses")
-	.action(()=>sumExpenses());
+	.option("--month, <month>")
+	.action((options)=>sumExpenses(options));
 
 
 
