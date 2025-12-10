@@ -9,11 +9,14 @@ const program = new Command();
 
 const initializeEntity = async (options) => {
 	try {			
-		return  {
-			id: 1,
-			...options,
-			time: new Date().toISOString()
-		  };			
+		return [
+			{
+				id: 1,
+				...options,
+				amount: Number(options.amount),
+				time: new Date().toISOString(),
+			}
+		];		
 	} catch (e) {
 		process.stderr.write(e);
 		process.stderr.write("error while writing file");
@@ -26,7 +29,6 @@ const validateAmount = async amount =>
 
 
 const getMonth = ts => new Date(ts).getMonth() + 1;
-  
 
 const saveExpense = async (options) => {
 
@@ -36,13 +38,16 @@ const saveExpense = async (options) => {
 
 	const expensesFromFile = await loadExpenses();
 
-	if (!expensesFromFile) {
+	if (expensesFromFile.length === 0) {
 		const initializedEntity = await initializeEntity(options);
 		await writeFile("./expenses.json", JSON.stringify(initializedEntity, null, 2));
 	}
 
+	const latestId = expensesFromFile[expensesFromFile.length - 1];
+	const newId = latestId ? latestId.id + 1 : 1;
+
 	const newExpense = {
-		id: expensesFromFile.length + 1,
+		id: newId,
 		...options,
 		time: new Date().toISOString()
 	};
@@ -110,6 +115,7 @@ const addAllAmounts = (expenses) =>
 	expenses.reduce((total, { amount }) => total + Number(amount), 0);
 
 const sumExpensesByMonth = (allExpenses, month) => {
+
 	const monthNum = Number(month);
 	const expensesByMonth = allExpenses.filter(
 		expense => getMonth(expense.time) === monthNum
@@ -162,8 +168,4 @@ program
 	.option("--month, <month>")
 	.action((options)=>sumExpenses(options));
 
-
-
 program.parse();
-
-
